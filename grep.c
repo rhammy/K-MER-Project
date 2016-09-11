@@ -2,7 +2,7 @@
 #include<string.h>
 
 //------------------------------------------------------------------------------------------------------------------------------------------
-typedef struct node {
+/*typedef struct node {
   int data;
   struct node *next;
 }newNode;
@@ -12,13 +12,13 @@ newNode *arrays[10];
 void linkedListStartup(){
 	int i;
 	for(i = 0;i<6;i++){
-		arrays[i]= malloc(sizeof(newNode));
+		arrays[i]= (*int)malloc(sizeof(newNode));
 		arrays[i]=NULL;
 	}
 }
 
 void addNode(int index,int val){
-	newNode *placer =  (newNode*) malloc(sizeof(newNode));
+	newNode *placer =  (*int)malloc(sizeof(newNode));
 	placer->data = val;
 	placer->next = arrays[index];
 	arrays[index] = placer;
@@ -29,7 +29,7 @@ void printIndex(int index){
 		printf("%i\n",current->data);
 		current = current->next;
 	}
-}
+}*/
 //---------------------------------------------------------------------------------------------------------------------------------
 
 struct sequence {			// Creating a STRUCT of type sequence. In the struct, it contains a string of the sequence. 
@@ -45,13 +45,8 @@ int Search_in_File(char *fname, char *str) {
 	int find_result = 0;
 	char temp[512];
 	
-	//gcc users
-	//if((fp = fopen(fname, "r")) == NULL) {
-	//	return(-1);
-	//}
-
-	//Visual Studio users
-	if((fopen_s(&fp, fname, "r")) != NULL) {
+	
+	if((fp = fopen(fname, "r")) == NULL) {
 		return(-1);
 	}
 
@@ -94,13 +89,6 @@ void healthkmerGrep(char txtFile[]){		// This method will search for k-mer's wit
 }
 
 main(int argc, char *argv[]){
-	result = Search_in_File(argv[1], argv[2]);
-	if(result == -1) {
-		perror("Error");
-		printf("Error number = %d\n", errno);
-		exit(1);
-	}
+	Search_in_File(argv[1], argv[2]);
 	return(0);
-}
-
 }
