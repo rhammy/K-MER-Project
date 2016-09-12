@@ -60,7 +60,7 @@ void search0s(char fileString[]){
 			buffHolder++;
 		}
 		buffHolder++;
-		while(buff[buffHolder]!=NULL){
+		while(buff[buffHolder]!= '\0'){
 			intTmp[intCounter]=buff[buffHolder];
 			buffHolder++;
 			intCounter++;
@@ -73,13 +73,45 @@ void search0s(char fileString[]){
 	}
 	
 }
-void printKmerArray(){ //ITERATES THE THE ARRAY OF HEALTHY KMERS!!!!!!!!!!!!!!!!!!!!
+
+int Search_in_File(char *fname, char *str) {
+	FILE *fp;
+	int line_num = 1;
+	int find_result = 0;
+	char temp[512];
+	
+	
+	if((fp = fopen(fname, "r")) == NULL) {
+		return(-1);
+	}
+
+	while(fgets(temp, 512, fp) != NULL) {
+		if((strstr(temp, str)) != NULL) {
+			printf("A match found on line: %d\n", line_num);
+			printf("\n%s\n", temp);
+			find_result++;
+		}
+		line_num++;
+	}
+
+	if(find_result == 0) {
+		printf("\nSorry, couldn't find a match.\n");
+	}
+	
+	//Close the file if still open.
+	if(fp) {
+		fclose(fp);
+	}
+   	return(0);
+}
+
+void printKmerArray(char *sickFile){ 	//ITERATES THE THE ARRAY OF HEALTHY KMERS Into a search function for the sick K-MER file to find the lines in which they occur. 
 	int i;
 	for(i = 0; i < healthyKmerArrayCounter;i++){
-		printf("%s\n",healthyKmerArray[i].kmerString);
+		Search_in_File(sickFile, healthyKmerArray[i].kmerString);
 	}
 }
-main(){
-	search0s("healthy kmer.txt");
-	printKmerArray();
+main(int argc, char *argv[]){  //As of now, takes in two command line arguments that are txt files and finds difference in K_MER's
+	search0s(argv[1]);
+	printKmerArray(argv[2]);
 }
