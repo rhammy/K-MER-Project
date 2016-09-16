@@ -5,9 +5,8 @@
 #include <limits.h>
 #include <string.h>
 
-struct entry_s {
+struct node_s {
 	char *key;
-	char *value;
 	struct entry_s *next;
 };
 
