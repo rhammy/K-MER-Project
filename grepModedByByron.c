@@ -1,10 +1,12 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include<math.h>
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 struct kmer_s{
-	char kmerChars[5]; 
+	char kmerChars[20]; 
+	
 };
 
 struct node_s {
@@ -49,6 +51,7 @@ struct node_s *createNode(struct kmer_s val){
 	return newNode;
 }
 
+/*Adding a node into a hash table. Utilizes @createNode*/
 void addNode(struct hashtable_s *targetTable,int location,struct kmer_s import){
 	struct node_s * newEntry = NULL;
 	struct node_s * current = NULL;
@@ -60,10 +63,10 @@ void addNode(struct hashtable_s *targetTable,int location,struct kmer_s import){
 		previous = current;
 		current = current->next;
 	}
-	if (current == targetTable->table[location]){ //table index is an empty list
+	if (current == targetTable->table[location]){ //Add at the beginning of a list
 		newEntry->next = current;
 		targetTable->table[location] = newEntry;
-	}else{ //add at the end of a list
+	}else{ //Add at the end of a list
 	 previous->next = newEntry;
 	}	
 }
@@ -72,14 +75,14 @@ void removeNode(struct hashtable_s *targetTable,int location,struct kmer_s impor
 	struct node_s * toRemove = NULL;
 	struct node_s * current = NULL;
 	struct node_s * previous = NULL;
-	toRemove = createNode(import);
+	toRemove = createNode(import); //create an instance of what we WANT TO REMOVE
 	current = targetTable->table[location];
 	while(current!=NULL){
 		if((strcmp(current->data.kmerChars,toRemove->data.kmerChars)==0)){
-			if(previous == NULL){ 
+			if(previous == NULL){ //At the start of the list
 			 targetTable->table[location] = current -> next;
 			return;
-			}else{
+			}else{ // Any where else in the list
 				previous->next = current -> next;
 			return;
 			}
@@ -91,6 +94,7 @@ void removeNode(struct hashtable_s *targetTable,int location,struct kmer_s impor
 	return;
 }
 
+
 void printTableIndex(struct hashtable_s *targetTable,int location){
 	struct node_s * current = NULL;
 	current = targetTable -> table[location];
@@ -98,26 +102,37 @@ void printTableIndex(struct hashtable_s *targetTable,int location){
 		printf("%s\n",current->data.kmerChars);
 		current = current->next;
 	}
+	//puts("");
 }
 
 
-//----------------------------------------------------------------------------------------------------------------------------------------------
-
-struct healthyKmer {
-	char kmerString [10]; //kmer length
-};
-
-struct healthyKmer healthyKmerArray[100];//number of kmers
-int healthyKmerArrayCounter = 0; // Universal healthy Kmer Array counter to increment through
-
-void printArrayIndex(int index){
-	printf("%s\n",healthyKmerArray[index].kmerString);
+int hashCode(char charArray[]){
+	int stringLength=strlen(charArray);
+	int i;
+	int hashNumber = 0;
+	for(i=0;i<stringLength;i++){
+		char letter = charArray[i];
+		int exponentiate;
+		exponentiate = pow(letter,i);
+		hashNumber+=exponentiate;	
+	}
+	if(hashNumber < 0){
+		hashNumber*=-1;
+	}
+	return hashNumber;
 }
 
-void splitFile(char fileString[]){
-	FILE *fileScanner = fopen(fileString,"r");	// Opening file to begin file stream.
-	char buff[100];								// Creating a space to import data from file.
-	int lineCount = 1;
+
+
+
+
+
+main(){  
+
+	struct hashtable_s *testTable = createHashTable(20);
+
+	FILE *fileScanner = fopen("sick kmer test.txt","r");	
+	char buff[100];								
 	while(fgets(buff,200,fileScanner)!=NULL){	
 		char strTmp[20];
 		int buffHolder = 0;
@@ -126,74 +141,39 @@ void splitFile(char fileString[]){
 			strTmp[buffHolder]=buff[buffHolder];
 			buffHolder++;
 		}
-	lineCount++;	
+		struct kmer_s newKmer;
+		strcpy(newKmer.kmerChars,strTmp);
+		int index = hashCode(newKmer.kmerChars);
+		index = index % testTable->size;
+		addNode(testTable,index,newKmer);	
 	}	
-}
-
-int Search_in_File(char *fname, char *str) {
-	FILE *fp;
-	int line_num = 1;
-	int find_result = 0;
-	char temp[512];
-	
-	
-	if((fp = fopen(fname, "r")) == NULL) {
-		return(-1);
-	}
-
-	while(fgets(temp, 512, fp) != NULL) {
-		if((strstr(temp, str)) != NULL) {
-			printf("A match found on line: %d\n", line_num);
-			printf("\n%s\n", temp);
-			find_result++;
-		}
-		line_num++;
-	}
-
-	if(find_result == 0) {
-		printf("\nSorry, couldn't find a match.\n");
-	}
-	
-	//Close the file if still open.
-	if(fp) {
-		fclose(fp);
-	}
-   	return(0);
-}
-
-void printKmerArray(char *sickFile){ 	//ITERATES THE THE ARRAY OF HEALTHY KMERS Into a search function for the sick K-MER file to find the lines in which they occur. 
+		
 	int i;
-	for(i = 0; i < healthyKmerArrayCounter;i++){
-		Search_in_File(sickFile, healthyKmerArray[i].kmerString);
+	for(i = 0;i<testTable->size;i++){
+	printTableIndex(testTable,i);
 	}
-}
 
-main(){  
-	struct kmer_s newKmer1;
-	struct kmer_s newKmer2;
-	struct kmer_s newKmer3;
-	char newString1[] = "abc";
-	char newString2[] = "efg";
-	char newString3[] = "hij";
-	strcpy(newKmer1.kmerChars,newString1);
-	strcpy(newKmer2.kmerChars,newString2);
-	strcpy(newKmer3.kmerChars,newString3);
+puts("");				
 
-	struct hashtable_s *newTable = createHashTable(10);
+
+	FILE *fileChecker = fopen("healthy kmer test.txt","r");	
+	char check[100];								
+	while(fgets(check,200,fileChecker)!=NULL){	
+		char strTmp[20];
+		int buffHolder = 0;
+		memset(&strTmp[0], 0, sizeof(strTmp));
+		while(check[buffHolder]!=' '){
+			strTmp[buffHolder]=check[buffHolder];
+			buffHolder++;
+		}
+		struct kmer_s newKmer;
+		strcpy(newKmer.kmerChars,strTmp);
+		int index = hashCode(newKmer.kmerChars);
+		index = index % testTable->size;
+		removeNode(testTable,index,newKmer);	
+		}
 	
-	addNode(newTable,3,newKmer1);
-	addNode(newTable,3,newKmer2);
-	addNode(newTable,3,newKmer3);
-	
-	printTableIndex(newTable,3);
-	puts("");
-	
-	struct kmer_s dummyKmer;
-	char newDummyString[]="efg";
-	strcpy(dummyKmer.kmerChars,newDummyString);
-	
-	removeNode(newTable,3,dummyKmer);
-	printTableIndex(newTable,3);
-	
-	
+	for(i = 0;i<testTable->size;i++){
+	printTableIndex(testTable,i);
+	}
 }
