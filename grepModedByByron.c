@@ -104,6 +104,15 @@ void printTableIndex(struct hashtable_s *targetTable,int location){
 	}
 	//puts("");
 }
+void printTableFasta(struct hashtable_s *targetTable,char *fname, int location){
+	struct node_s * current = NULL;
+	current = targetTable -> table[location];
+	while(current != NULL){
+		Search_in_File(fname,current->data.kmerChars);
+		current = current->next;
+	}
+	//puts("");
+}
 
 
 int hashCode(char charArray[]){
@@ -121,17 +130,50 @@ int hashCode(char charArray[]){
 	}
 	return hashNumber;
 }
+int Search_in_File(char *fname, char *str) {
+	FILE *fp;
+	int line_num = 1;
+	int find_result = 0;
+	char temp[512];
+	
+	
+	if((fp = fopen(fname, "r")) == NULL) {
+		return(-1);
+	}
+
+	while(fgets(temp, 512, fp) != NULL) {
+		if((strstr(temp, str)) != NULL) {
+			printf("A match found on line: %d\n", line_num);
+			printf("\n%s\n", temp);
+			find_result++;
+		}
+		line_num++;
+	}
+
+	if(find_result == 0) {
+		printf("\nSorry, couldn't find a match.\n");
+	}
+	
+	//Close the file if still open.
+	if(fp) {
+		fclose(fp);
+	}
+   	return(0);
+}
 
 
 
 
 
 
-main(){  
+main(int argc, char **argv){  
+	char *sick = argv[1];
+	char *healthy = argv[2];
+	char *fasta = argv[3];
 
 	struct hashtable_s *testTable = createHashTable(20);
 
-	FILE *fileScanner = fopen("sick kmer test.txt","r");	
+	FILE *fileScanner = fopen(sick,"r");	
 	char buff[100];								
 	while(fgets(buff,200,fileScanner)!=NULL){	
 		char strTmp[20];
@@ -149,14 +191,11 @@ main(){
 	}	
 		
 	int i;
-	for(i = 0;i<testTable->size;i++){
-	printTableIndex(testTable,i);
-	}
 
 puts("");				
 
 
-	FILE *fileChecker = fopen("healthy kmer test.txt","r");	
+	FILE *fileChecker = fopen(healthy,"r");	
 	char check[100];								
 	while(fgets(check,200,fileChecker)!=NULL){	
 		char strTmp[20];
@@ -175,5 +214,8 @@ puts("");
 	
 	for(i = 0;i<testTable->size;i++){
 	printTableIndex(testTable,i);
+	}
+	for(i = 0;i<testTable->size;i++){
+	printTableFasta(testTable,fasta,i);
 	}
 }
