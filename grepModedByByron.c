@@ -83,7 +83,7 @@ void removeNode(struct hashtable_s *targetTable,int location,struct kmer_s impor
 			 targetTable->table[location] = current -> next;
 			return;
 			}else{ // Any where else in the list
-				previous->next = current -> next;
+				 previous->next = current -> next;
 			return;
 			}
 		}
@@ -95,23 +95,17 @@ void removeNode(struct hashtable_s *targetTable,int location,struct kmer_s impor
 }
 
 
-void printTableIndex(struct hashtable_s *targetTable,int location){
-	struct node_s * current = NULL;
-	current = targetTable -> table[location];
-	while(current != NULL){
-		printf("%s\n",current->data.kmerChars);
-		current = current->next;
+void printTable(struct hashtable_s *targetTable){
+	int i;
+	for(i=0;i<targetTable->size;i++){
+		struct node_s * current = NULL;
+		current = targetTable -> table[i];
+		printf("Index i: %i\n", i);
+		while(current != NULL){
+			printf("%s\n",current->data.kmerChars);
+			current = current->next;
+		}
 	}
-	//puts("");
-}
-void printTableFasta(struct hashtable_s *targetTable,char *fname, int location){
-	struct node_s * current = NULL;
-	current = targetTable -> table[location];
-	while(current != NULL){
-		Search_in_File(fname,current->data.kmerChars);
-		current = current->next;
-	}
-	//puts("");
 }
 
 
@@ -123,99 +117,108 @@ int hashCode(char charArray[]){
 		char letter = charArray[i];
 		int exponentiate;
 		exponentiate = pow(letter,i);
-		hashNumber+=exponentiate;	
+		if(i%2==0){
+			hashNumber = hashNumber + exponentiate;
+		}else{
+			hashNumber = hashNumber - exponentiate;
+		}
 	}
 	if(hashNumber < 0){
 		hashNumber*=-1;
 	}
 	return hashNumber;
 }
-int Search_in_File(char *fname, char *str) {
-	FILE *fp;
-	int line_num = 1;
-	int find_result = 0;
-	char temp[512];
-	
-	
-	if((fp = fopen(fname, "r")) == NULL) {
-		return(-1);
-	}
 
-	while(fgets(temp, 512, fp) != NULL) {
-		if((strstr(temp, str)) != NULL) {
-			printf("A match found on line: %d\n", line_num);
-			printf("\n%s\n", temp);
-			find_result++;
+void populateTable(struct hashtable_s *targetTable, char *fileName){
+	FILE *fp = fopen(fileName,"r");	
+	char space[100];								
+	while(fgets(space,200,fp)!=NULL){	
+		char temp[20];
+		int holder = 0;
+		memset(&temp[0], 0, sizeof(temp));
+		while(space[holder]!=' '){
+			temp[holder]=space[holder];
+			holder++;
 		}
-		line_num++;
-	}
-
-	if(find_result == 0) {
-		printf("\nSorry, couldn't find a match.\n");
-	}
-	
-	//Close the file if still open.
-	if(fp) {
-		fclose(fp);
-	}
-   	return(0);
+		struct kmer_s newKmer;
+		strcpy(newKmer.kmerChars,temp);
+		int index = hashCode(newKmer.kmerChars);
+		index = index % targetTable->size;
+		addNode(targetTable,index,newKmer);	
+	}	
 }
 
-
-
-
-
-
-main(int argc, char **argv){  
-	char *sick = argv[1];
-	char *healthy = argv[2];
-	char *fasta = argv[3];
-
-	struct hashtable_s *testTable = createHashTable(20);
-
-	FILE *fileScanner = fopen(sick,"r");	
-	char buff[100];								
-	while(fgets(buff,200,fileScanner)!=NULL){	
-		char strTmp[20];
-		int buffHolder = 0;
-		memset(&strTmp[0], 0, sizeof(strTmp));
-		while(buff[buffHolder]!=' '){
-			strTmp[buffHolder]=buff[buffHolder];
-			buffHolder++;
+void locateUnique(struct hashtable_s *targetTable, char *fileName){
+	FILE *fp = fopen(fileName,"r");	
+	char space[100];								
+	while(fgets(space,200,fp)!=NULL){	
+		char temp[20];
+		int holder = 0;
+		memset(&temp[0], 0, sizeof(temp));
+		while(space[holder]!=' '){
+			temp[holder]=space[holder];
+			holder++;
 		}
 		struct kmer_s newKmer;
-		strcpy(newKmer.kmerChars,strTmp);
+		strcpy(newKmer.kmerChars,temp);
 		int index = hashCode(newKmer.kmerChars);
-		index = index % testTable->size;
-		addNode(testTable,index,newKmer);	
-	}	
-		
-	int i;
-
-puts("");				
-
-
-	FILE *fileChecker = fopen(healthy,"r");	
-	char check[100];								
-	while(fgets(check,200,fileChecker)!=NULL){	
-		char strTmp[20];
-		int buffHolder = 0;
-		memset(&strTmp[0], 0, sizeof(strTmp));
-		while(check[buffHolder]!=' '){
-			strTmp[buffHolder]=check[buffHolder];
-			buffHolder++;
+		index = index % targetTable->size;
+		removeNode(targetTable,index,newKmer);	
 		}
-		struct kmer_s newKmer;
-		strcpy(newKmer.kmerChars,strTmp);
-		int index = hashCode(newKmer.kmerChars);
-		index = index % testTable->size;
-		removeNode(testTable,index,newKmer);	
+}
+
+void searchThroughFasta(struct hashtable_s *targetTable,char *fileName){
+	FILE *fp = fopen(fileName,"r");
+	FILE *fileOutput = fopen("output.txt","w+");
+	int fastaCounter=1;
+	int DNAid;
+	int matchesFound = 0;
+	char space[500];
+	while(fgets(space,500,fp)!=NULL){
+		if(space[0]== '>'){
+			DNAid=atoi(space+1);
+			continue;
 		}
+		int i;
+		for(i=0;i<targetTable->size;i++){
+			int foundKmer = 0;
+			struct node_s * current = NULL;
+			current = targetTable -> table[i];
+			while(current != NULL){
+				if((strstr(space, current->data.kmerChars)) == NULL){
+				current = current->next;
+				}else{
+					printf("kmer '%s' was found in DNAid %i:\n",current->data.kmerChars,DNAid);
+					puts("");
+					printf("%s\n",space);
+					fprintf(fileOutput,">%i\n",fastaCounter);
+					fprintf(fileOutput,"%s",space);
+					puts("");
+					foundKmer = 1;
+					fastaCounter++;
+					break;
+				}
+			}
+			if (foundKmer == 1){
+				matchesFound++;
+				break;
+			}
+		}
+	}
+	if(matchesFound == 0){
+		puts("No matches were found");
+	}
+}
+
+main(){  
+
+	struct hashtable_s *testTable = createHashTable(100);
+	populateTable(testTable, "sick tester.txt");
+	printTable(testTable);
+	puts("");
+	locateUnique(testTable, "healthy tester.txt");
+	printTable(testTable);
+	puts("");
+	searchThroughFasta(testTable, "sickFastaTester.txt");
 	
-	for(i = 0;i<testTable->size;i++){
-	printTableIndex(testTable,i);
-	}
-	for(i = 0;i<testTable->size;i++){
-	printTableFasta(testTable,fasta,i);
-	}
 }
