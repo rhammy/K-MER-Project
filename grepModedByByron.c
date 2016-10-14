@@ -210,15 +210,15 @@ void searchThroughFasta(struct hashtable_s *targetTable,char *fileName){
 	}
 }
 
-main(){  
+main(int argc, char** argv){  
 
 	struct hashtable_s *testTable = createHashTable(100);
-	populateTable(testTable, "sick tester.txt");
+	populateTable(testTable, argv[1]);
 	printTable(testTable);
 	puts("");
-	locateUnique(testTable, "healthy tester.txt");
+	locateUnique(testTable, argv[2]);
 	printTable(testTable);
 	puts("");
-	searchThroughFasta(testTable, "sickFastaTester.txt");
+	searchThroughFasta(testTable, argv[3]);
 	
 }
