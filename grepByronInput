@@ -283,5 +283,19 @@ main(){
 	int splitCount = atoi(numOfSplits);
 	splitFile("fastaTester.txt",splitCount);
 	
+	long thread;
+	pthread_t *thread_handles;
 	
+	thread_count = splitCount;
+	
+	thread_handles = malloc(thread_count*sizeof(pthread_t));
+	
+	for(thread = 0; thread < thread_count; thread++){
+		pthread_create(&thread_handles[thread], NULL, searchThroughFasta, (void*) thread);
+	}
+	
+	for(thread = 0; thread < thread_count; thread++){
+		pthread_join(thread_handles[thread],NULL);
+		}
+	free(thread_handles);
 }
