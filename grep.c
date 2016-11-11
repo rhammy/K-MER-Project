@@ -203,7 +203,7 @@ void searchThroughFasta(struct hashtable_s *targetTable,char *fileName){
 
 main(int argc, char** argv){  
 
-	struct hashtable_s *testTable = createHashTable(100);
+	struct hashtable_s *testTable = createHashTable(250000);
 	populateTable(testTable, argv[1]);
 	printTable(testTable);
 	puts("");
