@@ -13,4 +13,10 @@ hash(unsigned char *str)
     return hash;
 }
 
-int main() {
+int main(int argc, char** argv) {
+
+printf("%lu\n",hash(argv[1]));
+
+return 0;
+}
+

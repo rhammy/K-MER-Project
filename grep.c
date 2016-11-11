@@ -109,24 +109,15 @@ void printTable(struct hashtable_s *targetTable){
 }
 
 
-int hashCode(char charArray[]){
-	int stringLength=strlen(charArray);
-	int i;
-	int hashNumber = 0;
-	for(i=0;i<stringLength;i++){
-		char letter = charArray[i];
-		int exponentiate;
-		exponentiate = pow(letter,i);
-		if(i%2==0){
-			hashNumber = hashNumber + exponentiate;
-		}else{
-			hashNumber = hashNumber - exponentiate;
-		}
-	}
-	if(hashNumber < 0){
-		hashNumber*=-1;
-	}
-	return hashNumber;
+unsigned long hashCode(unsigned char *str)
+{
+    unsigned long hashCode = 5381;
+    int c;
+
+    while (c = *str++)
+        hashCode = ((hashCode << 5) + hashCode) + c; /* hash * 33 + c */
+
+    return hashCode;
 }
 
 void populateTable(struct hashtable_s *targetTable, char *fileName){
@@ -142,7 +133,7 @@ void populateTable(struct hashtable_s *targetTable, char *fileName){
 		}
 		struct kmer_s newKmer;
 		strcpy(newKmer.kmerChars,temp);
-		int index = hashCode(newKmer.kmerChars);
+		unsigned long index = hashCode(newKmer.kmerChars);
 		index = index % targetTable->size;
 		addNode(targetTable,index,newKmer);	
 	}	
@@ -161,7 +152,7 @@ void locateUnique(struct hashtable_s *targetTable, char *fileName){
 		}
 		struct kmer_s newKmer;
 		strcpy(newKmer.kmerChars,temp);
-		int index = hashCode(newKmer.kmerChars);
+		unsigned long index = hashCode(newKmer.kmerChars);
 		index = index % targetTable->size;
 		removeNode(targetTable,index,newKmer);	
 		}
